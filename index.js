@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 // middleware 
 app.use(cors())
@@ -31,6 +31,12 @@ async function run() {
         const cursor = roomsCollection.find()
         const result = await cursor.toArray()
         res.send(result) 
+    })
+    app.get('/rooms/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await roomsCollection.findOne(query)
+      res.send(result)
     })
   } finally {
     // Ensures that the client will close when you finish/error
