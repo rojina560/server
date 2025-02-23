@@ -1,9 +1,9 @@
+require('dotenv').config()
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-require('dotenv').config()
 const app = express()
-const port = process.env.PORT || 5001;
+const port = process.env.PORT || 5002;
 
 // middleware 
 app.use(cors())
@@ -27,8 +27,15 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
     const roomsCollection = client.db('NothBengalHotel').collection('rooms')
+    // const productCollection = client.db('NothBengalHotel').collection('count')
+
     app.get('/rooms',async(req,res)=>{
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      console.log('pagination',page,size);
         const cursor = roomsCollection.find()
+        .skip(page * size)
+        .limit(size)
         const result = await cursor.toArray()
         res.send(result) 
     })
@@ -37,6 +44,10 @@ async function run() {
       const query = {_id: new ObjectId(id)};
       const result = await roomsCollection.findOne(query)
       res.send(result)
+    })
+    app.get('/roomsCount',async(req,res)=>{
+      const count = await roomsCollection.estimatedDocumentCount()
+      res.send({count}) 
     })
   } finally {
     // Ensures that the client will close when you finish/error
